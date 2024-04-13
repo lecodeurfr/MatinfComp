@@ -1,15 +1,33 @@
 from os import listdir, mkdir
-from os.path import isdir
 
 print("#######################################################")
 print("#             Matinf compiler                         #")
 print("#######################################################")
-print("Welcome to Matinf Compiler v0.3")
+print("Welcome to Matinf Compiler v0.4")
 
-symbols = ["=", ":", "\"","{", "}"]
+symbols = ["=>", "=", ":","{", "}", "(", ")"]
 keyword = ["def", "case", "match","Int","String","Double","List","if","then","else"]
 
-def colorCode(code):
+def colorSymbols(word, color):
+    symbol = []
+    pos = []
+    out = ""
+    if color :
+        for s in symbols :
+            curP = word.find(s)
+            if curP > -1 :
+                pos.append(curP)
+                symbol.append(s)
+        if len(pos) > 0 :
+            symb = symbol[pos.index(min(pos))]
+            out += word[:min(pos)] + '<label class="punctuation">' + symb + "</label>" + colorSymbols(word[min(pos)+len(symb):], color)
+        else :
+            out = word
+    else :
+        out = word
+    return out
+
+def colorCode(code, colorSymb):
     codeArr = code.split('<div class="code">')
     out = ""
     if len(codeArr) > 1 :
@@ -19,15 +37,17 @@ def colorCode(code):
             curCode = codeArr[c].split("</div>")
             wordArr = curCode[0].split(" ")
             for w in wordArr :
-                if w in keyword :
-                    out += '<label class="keyword">'+w+"</label>"
+                res = []
+                pos = []
+                for k in keyword :
+                    tmp = w.find(k)
+                    if tmp != -1 :
+                        pos.append(tmp)
+                        res.append(k)
+                if len(pos) > 0 :
+                    out += w[:min(pos)]+'<label class="keyword">'+ res[pos.index(min(pos))] +"</label>" + colorSymbols(w[min(pos)+len(res[pos.index(min(pos))]):], colorSymb)
                 else :
-                    chars = [*w]
-                    for c in chars :
-                        if c in symbols :
-                            out += '<label class="punctuation">'+c+"</label>"
-                        else :
-                            out += c
+                    out += colorSymbols(w, colorSymb)
                 out += " "
             out += "</div>"+curCode[1]
         return out
@@ -45,7 +65,13 @@ def compile(path, workspace, activePath):
     isPTitle = False
     isTitle = 0
     isCode = False
+    curInd = 0
+    isComment = False
     for c in chars :
+        if curInd < len(chars) - 2 :
+            if chars[curInd] == "/" and chars[curInd+1] == "/" :
+                isComment = True
+                out += "<label class='comment'>"
         if isPTitle :
             if c == "1":
                 isTitle = 1
@@ -68,6 +94,9 @@ def compile(path, workspace, activePath):
                 out += "</h2>"
             elif isTitle == 3 :
                 out += "</h3>"
+            elif isComment :
+                isComment = False
+                out += "</label><br>"
             else :
                 out += "<br>"
             isTitle = 0
@@ -80,8 +109,9 @@ def compile(path, workspace, activePath):
                 out += "</div>"
         else :
             out += c
-    out += "<script>MathJax = {tex: {inlineMath: ['$', '$']}};</script><script id=\"MathJax-script\" async src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js\"></script></body></html>"
-    coloredText = colorCode(out)
+        curInd += 1
+    out += "<script>MathJax = {tex: {inlineMath: [['$', '$']]}};</script><script id=\"MathJax-script\" async src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js\"></script></body></html>"
+    coloredText = colorCode(out, False)
     f.write(coloredText)
     f.close()
     f1.close()
@@ -134,6 +164,11 @@ try :
     global wPath
     f = open("meta.datapy","r")
     wPath = f.read()
+    baseStyle = open("style.css", "r")
+    copyStyle = open(wPath+"/style.css", "w")
+    copyStyle.write(baseStyle.read())
+    baseStyle.close()
+    copyStyle.close()
     f.close()
     
 except :

@@ -1,0 +1,38 @@
+body{
+    font-family: "Roboto", sans-serif;
+  font-weight: 300;
+  font-style: normal;
+}
+h1{
+    font-family: "Roboto", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+}
+h2{
+    font-family: "Roboto", sans-serif;
+    font-weight: 600;
+    font-style: normal;
+}
+h3{
+    font-family: "Roboto", sans-serif;
+    font-weight: 500;
+    font-style: normal;
+}
+.code{
+    border-radius: 10px;
+    padding: 20px;
+    font-family: 'Courier New', Courier, monospace;
+    -webkit-box-shadow: 0px 0px 8px 0px #000000; 
+box-shadow: 0px 0px 8px 0px #000000;
+width: fit-content;
+margin: 10px;
+}
+.keyword{
+    color: #565fd5;
+}
+.punctuation{
+    color: #d55656;
+}
+.comment{
+    color: #47ba68;
+}

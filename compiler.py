@@ -28,29 +28,23 @@ def colorSymbols(word, color):
     return out
 
 def colorCode(code, colorSymb):
-    codeArr = code.split('<div class="code">')
     out = ""
-    if len(codeArr) > 1 :
-        out = codeArr[0]
-        for c in range(1, len(codeArr)):
-            out += '<div class="code">'
-            curCode = codeArr[c].split("</div>")
-            wordArr = curCode[0].split(" ")
-            for w in wordArr :
-                res = []
-                pos = []
-                for k in keyword :
-                    tmp = w.find(k)
-                    if tmp != -1 :
-                        pos.append(tmp)
-                        res.append(k)
-                if len(pos) > 0 :
-                    out += w[:min(pos)]+'<label class="keyword">'+ res[pos.index(min(pos))] +"</label>" + colorSymbols(w[min(pos)+len(res[pos.index(min(pos))]):], colorSymb)
-                else :
-                    out += colorSymbols(w, colorSymb)
-                out += " "
-            out += "</div>"+curCode[1]
-        return out
+    wordArr = code.split(" ")
+    print(wordArr)
+    for w in wordArr :
+        res = []
+        pos = []
+        for k in keyword :
+            tmp = w.find(k)
+            if tmp != -1 :
+                pos.append(tmp)
+                res.append(k)
+        if len(pos) > 0 :
+            out += w[:min(pos)]+'<label class="keyword">'+ res[pos.index(min(pos))] +"</label>" + colorSymbols(w[min(pos)+len(res[pos.index(min(pos))]):], colorSymb)
+        else :
+            out += colorSymbols(w, colorSymb)
+        out += " "
+    return out
 
 
 def compile(path, workspace, activePath):
@@ -67,52 +61,64 @@ def compile(path, workspace, activePath):
     isCode = False
     curInd = 0
     isComment = False
+    corpsOut = ""
+    code = ""
     for c in chars :
-        if curInd < len(chars) - 2 :
+        if curInd < len(chars) - 2 and isCode :
             if chars[curInd] == "/" and chars[curInd+1] == "/" :
                 isComment = True
-                out += "<label class='comment'>"
+                isCode = False
+                corpsOut += colorCode(code, True)
+                code = ""
+                corpsOut += "<label class='comment'>"
         if isPTitle :
             if c == "1":
                 isTitle = 1
-                out += "<h1>"
+                corpsOut += "<h1>"
             elif c == "2":
                 isTitle = 2
-                out += "<h2>"
+                corpsOut += "<h2>"
             elif c == "3" :
                 isTitle = 3
-                out += "<h3>"
+                corpsOut += "<h3>"
             else :
-                out+=c
+                corpsOut +=c
             isPTitle = False
         elif c == "<":
             isPTitle = True
         elif c == "\n" :
             if isTitle == 1 :
-                out += "</h1>"
+                corpsOut += "</h1>"
             elif isTitle == 2 :
-                out += "</h2>"
+                corpsOut += "</h2>"
             elif isTitle == 3 :
-                out += "</h3>"
+                corpsOut += "</h3>"
             elif isComment :
                 isComment = False
-                out += "</label><br>"
+                corpsOut += "</label><br>"
+                isCode = True
+            elif isCode :
+                code += "<br>"
             else :
-                out += "<br>"
+                corpsOut += "<br>"
             isTitle = 0
         elif c == "§" :
             if not isCode :
                 isCode = True
-                out += '<div class="code">'
+                corpsOut += '<div class="code">'
             else :
                 isCode = False
-                out += "</div>"
+                corpsOut += colorCode(code, True)+"</div>"
+                code = ""
         else :
-            out += c
+            if isCode :
+                code += c
+            else :
+                corpsOut += c
         curInd += 1
+    out += corpsOut
     out += "<script>MathJax = {tex: {inlineMath: [['$', '$']]}};</script><script id=\"MathJax-script\" async src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js\"></script></body></html>"
-    coloredText = colorCode(out, False)
-    f.write(coloredText)
+    f.write(out)
     f.close()
     f1.close()
 
